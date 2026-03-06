@@ -1,5 +1,44 @@
 # CEX 交易所项目文档
 
+## 项目目录结构
+
+```
+/root/.openclaw/workspace/cex-project/
+├── frontend/          # 前端项目 (React + TypeScript + Vite)
+│   ├── src/          # 前端源代码
+│   ├── package.json  # 前端依赖配置
+│   └── vite.config.ts
+├── backend/          # 后端项目 (Rust + Actix-web)
+│   ├── src/         # 后端源代码
+│   └── Cargo.toml   # 后端依赖配置
+├── docs/            # 项目文档
+│   └── README.md    # 本文档
+└── .gitignore       # Git 忽略配置
+```
+
+### 前后端项目路径
+
+| 类型 | 绝对路径 |
+|------|----------|
+| **前端** | `/root/.openclaw/workspace/cex-project/frontend/` |
+| **后端** | `/root/.openclaw/workspace/cex-project/backend/` |
+| **文档** | `/root/.openclaw/workspace/cex-project/docs/` |
+
+### 启动命令
+
+```bash
+# 前端 (在 frontend 目录)
+cd /root/.openclaw/workspace/cex-project/frontend
+npm install
+npm run dev
+
+# 后端 (在 backend 目录)
+cd /root/.openclaw/workspace/cex-project/backend
+cargo run
+```
+
+---
+
 ## 项目概述
 
 **项目名称**: CEX 交易平台  
@@ -360,9 +399,11 @@ cex-project/
 
 ## 更新日志
 
-| 2026-03-06 12:08 | 代码审查：前后端编译检查通过（vite build ✓, cargo check ✓, clippy ✓ 0 warnings）；前后端 API 完全对齐，6个页面完整集成后端 API；项目稳定运行，无新增优化项；待实现功能（邮箱/手机验证码、充值 Crypto、提现 Crypto）需要外部服务集成 |
+| 2026-03-06 12:28 | 代码审查：前后端编译检查通过（vite build ✓, cargo check ✓, clippy ✓ 0 warnings）；前后端 API 完全对齐，6个页面完整集成后端 API（53个API端点）；项目稳定运行，无新增优化项；待实现功能（邮箱/手机验证码、充值 Crypto、提现 Crypto）需要外部服务集成 |
 
-| 2026-03-06 11:58 | 代码审查：前后端编译检查通过（vite build ✓, cargo check ✓, clippy ✓ 0 warnings）；前后端 API 完全对齐，6个页面完整集成后端 API；项目稳定运行，无新增优化项；待实现功能（邮箱/手机验证码、充值 Crypto、提现 Crypto）需要外部服务集成 |
+| 2026-03-06 12:18 | 代码审查：前后端编译检查通过（vite build ✓, cargo check ✓, clippy ✓ 0 warnings）；前后端 API 完全对齐，6个页面完整集成后端 API；项目稳定运行，无新增优化项；待实现功能（邮箱/手机验证码、充值 Crypto、提现 Crypto）需要外部服务集成 |
+
+| 2026-03-06 12:08 | 代码审查：前后端编译检查通过（vite build ✓, cargo check ✓, clippy ✓ 0 warnings）；前后端 API 完全对齐，6个页面完整集成后端 API；项目稳定运行，无新增优化项；待实现功能（邮箱/手机验证码、充值 Crypto、提现 Crypto）需要外部服务集成 |
 
 | 2026-03-06 11:38 | 代码审查：前后端编译检查通过（vite build ✓, cargo check ✓, clippy ✓ 0 warnings）；前后端 API 完全对齐，6个页面完整集成后端 API；项目稳定运行，无新增优化项；待实现功能（邮箱/手机验证码、充值 Crypto、提现 Crypto）需要外部服务集成 |
 
