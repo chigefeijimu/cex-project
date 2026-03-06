@@ -165,7 +165,7 @@ pub async fn add_favorite(
         .unwrap_or_else(|| "default".to_string());
     
     let mut favorites = state.favorites.lock().unwrap();
-    let user_favorites = favorites.entry(user_id).or_insert_with(Vec::new);
+    let _user_favorites = favorites.entry(user_id).or_default();
     
     HttpResponse::Ok().json(serde_json::json!({
         "message": "Favorite added"
@@ -184,7 +184,7 @@ pub async fn remove_favorite(
         .unwrap_or_else(|| "default".to_string());
     
     let mut favorites = state.favorites.lock().unwrap();
-    if let Some(user_favorites) = favorites.get_mut(&user_id) {
+    if let Some(_user_favorites) = favorites.get_mut(&user_id) {
         // 移除逻辑
     }
     

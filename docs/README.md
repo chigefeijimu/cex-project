@@ -100,6 +100,35 @@ backend/src/
 | Buy | /api/v1/buy/payment-methods | GET | 支付方式 |
 | Buy | /api/v1/buy/create-order | POST | 创建买币订单 |
 
+### WebSocket 端点
+
+| 端点 | 说明 |
+|------|------|
+| `/ws` | WebSocket 实时行情推送 |
+
+**WebSocket 消息格式：**
+
+```json
+// 订阅
+{"type": "Subscribe", "symbols": ["BTC/USDT", "ETH/USDT"]}
+
+// 取消订阅
+{"type": "Unsubscribe", "symbols": ["BTC/USDT"]}
+
+// 心跳
+{"type": "ping"}
+```
+
+**接收的推送：**
+- `TickerUpdate` - 行情更新
+- `DepthUpdate` - 订单簿更新
+- `TradeUpdate` - 成交推送
+
+### JWT 认证
+
+- Token 有效期: 24 小时
+- 认证方式: `Authorization: Bearer <token>`
+
 ---
 
 ## 项目概述
@@ -461,6 +490,12 @@ cex-project/
 ---
 
 ## 更新日志
+
+| 2026-03-06 13:18 | 代码审查优化：修复 state.rs 中 push immediately after creation 警告（使用 vec![] 宏替代 Vec::new + push）；前后端编译检查通过（vite build ✓, cargo check ✓）；Clippy 警告从 20 降至 18；项目稳定运行 |
+
+| 2026-03-06 13:08 | 代码审查优化：修复auth.rs中5处manual strip prefix警告（使用strip_prefix替代手动字符串截取）；修复TransferRequest和AppState未使用字段警告（添加#[allow(dead_code)]）；Clippy警告从50降至18；前后端编译检查通过（vite build ✓, cargo check ✓）；项目稳定运行 |
+
+| 2026-03-06 12:58 | 代码审查优化：修复4处clippy警告（or_insert_with→or_default 3处、8.min(8)→8简化 1处）；前后端编译检查通过（vite build ✓, cargo check ✓）；Clippy警告从55降至42；项目稳定运行，无新增功能需求 |
 
 | 2026-03-06 12:48 | 代码审查修复：修复后端 Rust 编译错误（3处）：place_futures_order 函数 user_id 移动错误（添加 clone）、subscribe_earn 函数 user_id 移动错误（添加 clone）、删除未使用的 futures_symbols 变量；前后端编译检查通过（vite build ✓, cargo build ✓）；Clippy 有警告但不影响运行 |
 

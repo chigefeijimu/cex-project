@@ -78,6 +78,7 @@ pub struct WithdrawRequest {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct TransferRequest {
     pub from_currency: String,
     pub to_currency: String,

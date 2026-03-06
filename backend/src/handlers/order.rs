@@ -38,7 +38,7 @@ pub async fn place_order(
 // 获取订单列表
 pub async fn get_orders(
     req: actix_web::HttpRequest,
-    query: web::Query<std::collections::HashMap<String, String>>,
+    _query: web::Query<std::collections::HashMap<String, String>>,
     state: web::Data<AppState>,
 ) -> impl Responder {
     let user_id = req.headers()
@@ -107,7 +107,7 @@ pub async fn get_trades(
 
 // 检查止损单
 pub async fn check_stop_orders(
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
 ) -> impl Responder {
     HttpResponse::Ok().json(serde_json::json!({
         "triggered": []

@@ -74,7 +74,7 @@ pub async fn place_futures_order(
     let order_response = order.clone();
     
     let mut futures_orders = state.futures_orders.lock().unwrap();
-    let user_orders = futures_orders.entry(user_id.clone()).or_insert_with(Vec::new);
+    let user_orders = futures_orders.entry(user_id.clone()).or_default();
     user_orders.push(order);
     
     HttpResponse::Ok().json(serde_json::json!({
@@ -136,8 +136,8 @@ pub async fn get_futures_orders(
 
 // 平仓
 pub async fn close_futures_position(
-    position_id: web::Path<String>,
-    state: web::Data<AppState>,
+    _position_id: web::Path<String>,
+    _state: web::Data<AppState>,
 ) -> impl Responder {
     HttpResponse::Ok().json(serde_json::json!({
         "message": "Position closed"
@@ -189,7 +189,7 @@ pub async fn subscribe_earn(
     let subscription_response = subscription.clone();
     
     let mut subscriptions = state.earn_subscriptions.lock().unwrap();
-    let user_subs = subscriptions.entry(user_id.clone()).or_insert_with(Vec::new);
+    let user_subs = subscriptions.entry(user_id.clone()).or_default();
     user_subs.push(subscription);
     
     HttpResponse::Ok().json(serde_json::json!({
@@ -266,7 +266,7 @@ pub async fn get_payment_methods() -> impl Responder {
 // 创建买币订单
 pub async fn create_buy_order(
     req: actix_web::HttpRequest,
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
     order_req: web::Json<CreateBuyOrderRequest>,
 ) -> impl Responder {
     let user_id = req.headers()
@@ -291,8 +291,8 @@ pub async fn create_buy_order(
 
 // 获取买币订单
 pub async fn get_buy_orders(
-    req: actix_web::HttpRequest,
-    state: web::Data<AppState>,
+    _req: actix_web::HttpRequest,
+    _state: web::Data<AppState>,
 ) -> impl Responder {
     HttpResponse::Ok().json(serde_json::json!({
         "orders": []

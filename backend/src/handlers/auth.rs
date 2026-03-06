@@ -78,8 +78,8 @@ pub async fn logout(
 ) -> impl Responder {
     if let Some(auth) = req.headers().get("Authorization") {
         if let Ok(token) = auth.to_str() {
-            if token.starts_with("Bearer ") {
-                let token = token[7..].to_string();
+            if let Some(stripped) = token.strip_prefix("Bearer ") {
+                let token = stripped.to_string();
                 state.sessions.lock().unwrap().remove(&token);
             }
         }
@@ -95,8 +95,8 @@ pub async fn get_profile(
 ) -> impl Responder {
     let user_id = if let Some(auth) = req.headers().get("Authorization") {
         if let Ok(token) = auth.to_str() {
-            if token.starts_with("Bearer ") {
-                state.sessions.lock().unwrap().get(&token[7..]).cloned()
+            if let Some(stripped) = token.strip_prefix("Bearer ") {
+                state.sessions.lock().unwrap().get(stripped).cloned()
             } else {
                 None
             }
@@ -128,8 +128,8 @@ pub async fn update_profile(
 ) -> impl Responder {
     let user_id = if let Some(auth) = req.headers().get("Authorization") {
         if let Ok(token) = auth.to_str() {
-            if token.starts_with("Bearer ") {
-                state.sessions.lock().unwrap().get(&token[7..]).cloned()
+            if let Some(stripped) = token.strip_prefix("Bearer ") {
+                state.sessions.lock().unwrap().get(stripped).cloned()
             } else {
                 None
             }
@@ -163,8 +163,8 @@ pub async fn get_invite_code(
 ) -> impl Responder {
     let user_id = if let Some(auth) = req.headers().get("Authorization") {
         if let Ok(token) = auth.to_str() {
-            if token.starts_with("Bearer ") {
-                state.sessions.lock().unwrap().get(&token[7..]).cloned()
+            if let Some(stripped) = token.strip_prefix("Bearer ") {
+                state.sessions.lock().unwrap().get(stripped).cloned()
             } else {
                 None
             }
@@ -197,8 +197,8 @@ pub async fn get_referral_stats(
 ) -> impl Responder {
     let user_id = if let Some(auth) = req.headers().get("Authorization") {
         if let Ok(token) = auth.to_str() {
-            if token.starts_with("Bearer ") {
-                state.sessions.lock().unwrap().get(&token[7..]).cloned()
+            if let Some(stripped) = token.strip_prefix("Bearer ") {
+                state.sessions.lock().unwrap().get(stripped).cloned()
             } else {
                 None
             }
@@ -229,8 +229,8 @@ pub async fn get_referral_list(
 ) -> impl Responder {
     let user_id = if let Some(auth) = req.headers().get("Authorization") {
         if let Ok(token) = auth.to_str() {
-            if token.starts_with("Bearer ") {
-                state.sessions.lock().unwrap().get(&token[7..]).cloned()
+            if let Some(stripped) = token.strip_prefix("Bearer ") {
+                state.sessions.lock().unwrap().get(stripped).cloned()
             } else {
                 None
             }

@@ -7,7 +7,9 @@ mod infrastructure;
 mod handlers;
 
 use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web_actors::ws;
 use infrastructure::AppState;
+use domain::websocket::{WsSession, WsState};
 use handlers::*;
 
 // 健康检查
@@ -18,6 +20,14 @@ async fn health_check() -> impl Responder {
     }))
 }
 
+// WebSocket 端点
+async fn ws_index(
+    req: actix_web::HttpRequest,
+    stream: web::Payload,
+) -> actix_web::Result<actix_web::HttpResponse> {
+    ws::start(WsSession::new(), &req, stream)
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // 初始化日志
@@ -25,13 +35,18 @@ async fn main() -> std::io::Result<()> {
     
     let bind = "0.0.0.0:8080";
     println!("Starting CEX Server on http://{}", bind);
+    println!("WebSocket available at ws://{}:8080/ws", bind.split(':').next().unwrap_or("localhost"));
     
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(AppState::default()))
+            .app_data(web::Data::new(WsState::new()))
             
             // 健康检查
             .route("/health", web::get().to(health_check))
+            
+            // WebSocket
+            .route("/ws", web::get().to(ws_index))
             
             // 认证相关
             .route("/api/v1/auth/register", web::post().to(register))
@@ -96,7 +111,7 @@ async fn main() -> std::io::Result<()> {
             .route("/api/v1/buy/orders", web::get().to(get_buy_orders))
             
             // 根路径
-            .route("/", web::get().to(|| async { "CEX API Server Running - DDD Architecture" }))
+            .route("/", web::get().to(|| async { "CEX API Server Running - DDD Architecture with WebSocket" }))
     })
     .bind(bind)?
     .run()

@@ -4,9 +4,13 @@ pub mod market;
 pub mod order;
 pub mod wallet;
 pub mod futures;
+pub mod auth;
+pub mod websocket;
 
 pub use user::*;
 pub use market::*;
 pub use order::*;
 pub use wallet::*;
 pub use futures::*;
+pub use auth::*;
+pub use websocket::*;

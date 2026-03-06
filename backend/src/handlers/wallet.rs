@@ -6,7 +6,7 @@ use crate::infrastructure::AppState;
 
 // 获取余额
 pub async fn get_balance(
-    req: actix_web::HttpRequest,
+    _req: actix_web::HttpRequest,
     user_id: web::Path<String>,
     state: web::Data<AppState>,
 ) -> impl Responder {
@@ -49,7 +49,7 @@ pub async fn get_balance(
 // 获取充值地址
 pub async fn get_deposit_address(
     req: actix_web::HttpRequest,
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
 ) -> impl Responder {
     let user_id = req.headers()
         .get("X-User-ID")
@@ -59,7 +59,7 @@ pub async fn get_deposit_address(
     
     let deposit_addr = DepositAddress {
         currency: "BTC".to_string(),
-        address: format!("bc1q{}xy{}", &user_id[..8.min(8)], &user_id[8..16.min(16)]),
+        address: format!("bc1q{}xy{}", &user_id[..8], &user_id[8..16]),
         tag: None,
         network: "Bitcoin".to_string(),
     };
@@ -75,10 +75,10 @@ pub async fn get_deposit_address(
 // 提现
 pub async fn withdraw(
     req: actix_web::HttpRequest,
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
     withdraw_req: web::Json<WithdrawRequest>,
 ) -> impl Responder {
-    let user_id = req.headers()
+    let _user_id = req.headers()
         .get("X-User-ID")
         .and_then(|v| v.to_str().ok())
         .map(|s| s.to_string())
@@ -99,10 +99,10 @@ pub async fn withdraw(
 // 内部转账
 pub async fn transfer(
     req: actix_web::HttpRequest,
-    state: web::Data<AppState>,
-    transfer_req: web::Json<TransferRequest>,
+    _state: web::Data<AppState>,
+    _transfer_req: web::Json<TransferRequest>,
 ) -> impl Responder {
-    let user_id = req.headers()
+    let _user_id = req.headers()
         .get("X-User-ID")
         .and_then(|v| v.to_str().ok())
         .map(|s| s.to_string())
@@ -118,7 +118,7 @@ pub async fn transfer(
 // 获取交易记录
 pub async fn get_transactions(
     req: actix_web::HttpRequest,
-    query: web::Query<std::collections::HashMap<String, String>>,
+    _query: web::Query<std::collections::HashMap<String, String>>,
     state: web::Data<AppState>,
 ) -> impl Responder {
     let user_id = req.headers()
@@ -181,9 +181,9 @@ pub async fn get_withdraw_whitelist(
 // 添加提现白名单
 pub async fn add_withdraw_whitelist(
     req: actix_web::HttpRequest,
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
 ) -> impl Responder {
-    let user_id = req.headers()
+    let _user_id = req.headers()
         .get("X-User-ID")
         .and_then(|v| v.to_str().ok())
         .map(|s| s.to_string())
@@ -197,9 +197,9 @@ pub async fn add_withdraw_whitelist(
 // 移除白名单
 pub async fn remove_from_whitelist(
     req: actix_web::HttpRequest,
-    state: web::Data<AppState>,
+    _state: web::Data<AppState>,
 ) -> impl Responder {
-    let user_id = req.headers()
+    let _user_id = req.headers()
         .get("X-User-ID")
         .and_then(|v| v.to_str().ok())
         .map(|s| s.to_string())

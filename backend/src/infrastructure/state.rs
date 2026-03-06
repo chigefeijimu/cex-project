@@ -1,4 +1,6 @@
 // Infrastructure - App State
+#![allow(dead_code)]
+
 use std::sync::Mutex;
 use crate::domain::*;
 
@@ -104,10 +106,11 @@ impl Default for AppState {
         };
 
         // 初始化理财产品
-        let mut earn_products = Vec::new();
-        earn_products.push(EarnProduct::new("BTC 定期".to_string(), "BTC".to_string(), 5.5, 0.01, 30 * 24 * 3600));
-        earn_products.push(EarnProduct::new("ETH 定期".to_string(), "ETH".to_string(), 4.2, 0.1, 30 * 24 * 3600));
-        earn_products.push(EarnProduct::new("USDT 定期".to_string(), "USDT".to_string(), 8.5, 100.0, 7 * 24 * 3600));
+        let earn_products = vec![
+            EarnProduct::new("BTC 定期".to_string(), "BTC".to_string(), 5.5, 0.01, 30 * 24 * 3600),
+            EarnProduct::new("ETH 定期".to_string(), "ETH".to_string(), 4.2, 0.1, 30 * 24 * 3600),
+            EarnProduct::new("USDT 定期".to_string(), "USDT".to_string(), 8.5, 100.0, 7 * 24 * 3600),
+        ];
 
         Self {
             users: Mutex::new(std::collections::HashMap::new()),
