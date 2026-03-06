@@ -26,3 +26,4 @@ Cargo.lock
 # Misc
 *.bak
 *.tmp
+backend/target/
