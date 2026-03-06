@@ -39,6 +39,69 @@ cargo run
 
 ---
 
+## 后端架构 (DDD 领域驱动设计)
+
+```
+backend/src/
+├── main.rs              # 入口文件
+├── domain/              # 领域层 - 核心业务模型
+│   ├── mod.rs
+│   └── models/          # 领域模型
+│       ├── mod.rs
+│       ├── user.rs      # 用户模型
+│       ├── market.rs    # 市场模型
+│       ├── order.rs     # 订单模型
+│       ├── wallet.rs    # 钱包模型
+│       └── futures.rs   # 合约/理财模型
+├── application/         # 应用层 - DTOs 和命令
+│   ├── mod.rs
+│   └── dtos/           # 数据传输对象
+│       └── mod.rs
+├── infrastructure/      # 基础设施层 - 状态管理
+│   ├── mod.rs
+│   └── state.rs        # 应用状态
+└── handlers/           # 接口层 - HTTP 处理器
+    ├── mod.rs
+    ├── auth.rs         # 认证相关
+    ├── market.rs       # 市场数据
+    ├── order.rs        # 订单相关
+    ├── wallet.rs       # 钱包相关
+    └── trading.rs      # 合约/理财/买币
+```
+
+### API 端点
+
+| 模块 | 端点 | 方法 | 说明 |
+|------|------|------|------|
+| Auth | /api/v1/auth/register | POST | 用户注册 |
+| Auth | /api/v1/auth/login | POST | 用户登录 |
+| Auth | /api/v1/auth/logout | POST | 登出 |
+| User | /api/v1/user/profile | GET | 获取用户资料 |
+| User | /api/v1/user/profile | PUT | 更新用户资料 |
+| Market | /api/v1/market/symbols | GET | 获取交易对列表 |
+| Market | /api/v1/market/stats | GET | 获取市场统计 |
+| Market | /api/v1/market/ticker/{symbol} | GET | 获取行情 |
+| Market | /api/v1/market/depth/{symbol} | GET | 获取深度 |
+| Market | /api/v1/market/kline/{symbol} | GET | 获取K线 |
+| Order | /api/v1/order/place | POST | 下单 |
+| Order | /api/v1/order/list | GET | 订单列表 |
+| Order | /api/v1/order/cancel/{id} | DELETE | 取消订单 |
+| Wallet | /api/v1/wallet/balance/{user_id} | GET | 获取余额 |
+| Wallet | /api/v1/wallet/deposit/address | POST | 获取充值地址 |
+| Wallet | /api/v1/wallet/withdraw | POST | 提现 |
+| Wallet | /api/v1/wallet/transactions | GET | 交易记录 |
+| Futures | /api/v1/futures/symbols | GET | 合约列表 |
+| Futures | /api/v1/futures/order | POST | 下合约单 |
+| Futures | /api/v1/futures/positions | GET | 持仓列表 |
+| Earn | /api/v1/earn/products | GET | 理财产品 |
+| Earn | /api/v1/earn/subscribe | POST | 订阅理财 |
+| Earn | /api/v1/earn/holdings | GET | 理财持仓 |
+| Buy | /api/v1/buy/fiat-price | GET | 法币价格 |
+| Buy | /api/v1/buy/payment-methods | GET | 支付方式 |
+| Buy | /api/v1/buy/create-order | POST | 创建买币订单 |
+
+---
+
 ## 项目概述
 
 **项目名称**: CEX 交易平台  
@@ -398,6 +461,8 @@ cex-project/
 ---
 
 ## 更新日志
+
+| 2026-03-06 12:48 | 代码审查修复：修复后端 Rust 编译错误（3处）：place_futures_order 函数 user_id 移动错误（添加 clone）、subscribe_earn 函数 user_id 移动错误（添加 clone）、删除未使用的 futures_symbols 变量；前后端编译检查通过（vite build ✓, cargo build ✓）；Clippy 有警告但不影响运行 |
 
 | 2026-03-06 12:28 | 代码审查：前后端编译检查通过（vite build ✓, cargo check ✓, clippy ✓ 0 warnings）；前后端 API 完全对齐，6个页面完整集成后端 API（53个API端点）；项目稳定运行，无新增优化项；待实现功能（邮箱/手机验证码、充值 Crypto、提现 Crypto）需要外部服务集成 |
 
