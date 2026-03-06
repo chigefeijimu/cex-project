@@ -1,5 +1,5 @@
 // WebSocket 模块 - 实时行情推送
-use actix::{Actor, StreamHandler, Context};
+use actix::{Actor, StreamHandler};
 use actix_web::web;
 use actix_web_actors::ws;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 /// WebSocket 消息类型
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type")]
+#[allow(dead_code)]
 pub enum WsMessage {
     /// 订阅行情
     Subscribe { symbols: Vec<String> },
@@ -135,6 +136,7 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
 }
 
 /// WebSocket 状态
+#[allow(dead_code)]
 pub struct WsState {
     pub subscribed_count: web::Data<std::sync::Mutex<usize>>,
 }

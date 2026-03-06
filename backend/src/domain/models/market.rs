@@ -81,6 +81,7 @@ pub struct MarketStats {
 
 // K线时间间隔
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub enum KlineInterval {
     OneMinute,
     FiveMinutes,
@@ -92,6 +93,7 @@ pub enum KlineInterval {
 }
 
 impl KlineInterval {
+    #[allow(dead_code)]
     pub fn as_str(&self) -> &str {
         match self {
             KlineInterval::OneMinute => "1m",

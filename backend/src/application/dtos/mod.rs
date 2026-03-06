@@ -7,6 +7,7 @@ pub struct RegisterRequest {
     pub email: String,
     pub username: String,
     pub password: String,
+    #[allow(dead_code)]
     pub invite_code: Option<String>,
 }
 
@@ -24,6 +25,7 @@ pub struct AuthResponse {
 
 // User DTOs
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct UpdateProfileRequest {
     pub username: Option<String>,
     pub email: Option<String>,
@@ -38,8 +40,11 @@ pub struct GetSymbolsQuery {
 
 #[derive(Debug, Deserialize)]
 pub struct GetKlineQuery {
+    #[allow(dead_code)]
     pub interval: Option<String>,
+    #[allow(dead_code)]
     pub start_time: Option<i64>,
+    #[allow(dead_code)]
     pub end_time: Option<i64>,
     pub limit: Option<usize>,
 }
@@ -52,17 +57,21 @@ pub struct PlaceOrderRequest {
     pub order_type: String,
     pub price: f64,
     pub quantity: f64,
+    #[allow(dead_code)]
     pub stop_price: Option<f64>,
+    #[allow(dead_code)]
     pub order_trigger: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
+#[allow(dead_code)]
 pub struct OrderResponse {
     pub order: crate::domain::Order,
 }
 
 // Wallet DTOs
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct DepositAddressRequest {
     pub currency: String,
     pub network: String,
@@ -73,7 +82,9 @@ pub struct WithdrawRequest {
     pub currency: String,
     pub address: String,
     pub amount: f64,
+    #[allow(dead_code)]
     pub network: String,
+    #[allow(dead_code)]
     pub tag: Option<String>,
 }
 

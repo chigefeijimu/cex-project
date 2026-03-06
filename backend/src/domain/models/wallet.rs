@@ -10,6 +10,7 @@ pub struct WalletBalance {
 }
 
 impl WalletBalance {
+    #[allow(dead_code)]
     pub fn new(currency: String) -> Self {
         Self {
             currency,
@@ -19,11 +20,13 @@ impl WalletBalance {
         }
     }
 
+    #[allow(dead_code)]
     pub fn add_available(&mut self, amount: f64) {
         self.available += amount;
         self.total += amount;
     }
 
+    #[allow(dead_code)]
     pub fn freeze(&mut self, amount: f64) -> bool {
         if self.available >= amount {
             self.available -= amount;
@@ -34,6 +37,7 @@ impl WalletBalance {
         }
     }
 
+    #[allow(dead_code)]
     pub fn unfreeze(&mut self, amount: f64) {
         self.frozen = (self.frozen - amount).max(0.0);
         self.available += amount;
@@ -56,6 +60,7 @@ pub struct Transaction {
 }
 
 impl Transaction {
+    #[allow(dead_code)]
     pub fn new(
         user_id: String,
         tx_type: String,
@@ -101,6 +106,7 @@ pub struct WithdrawAddress {
 }
 
 impl WithdrawAddress {
+    #[allow(dead_code)]
     pub fn new(
         user_id: String,
         currency: String,

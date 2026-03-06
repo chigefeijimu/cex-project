@@ -26,6 +26,10 @@ pub struct AppState {
     pub orderbooks: Mutex<std::collections::HashMap<String, OrderBook>>,
     pub klines: Mutex<std::collections::HashMap<String, Vec<Kline>>>,
     pub market_stats: Mutex<MarketStats>,
+    // Blockchain
+    pub deposit_addresses: Mutex<std::collections::HashMap<String, DepositAddress>>,
+    pub deposits: Mutex<std::collections::HashMap<String, DepositRecord>>,
+    pub withdrawals: Mutex<std::collections::HashMap<String, WithdrawRecord>>,
 }
 
 impl Default for AppState {
@@ -133,6 +137,10 @@ impl Default for AppState {
             orderbooks: Mutex::new(orderbooks),
             klines: Mutex::new(std::collections::HashMap::new()),
             market_stats: Mutex::new(market_stats),
+            // Blockchain
+            deposit_addresses: Mutex::new(std::collections::HashMap::new()),
+            deposits: Mutex::new(std::collections::HashMap::new()),
+            withdrawals: Mutex::new(std::collections::HashMap::new()),
         }
     }
 }

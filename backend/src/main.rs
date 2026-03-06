@@ -90,6 +90,16 @@ async fn main() -> std::io::Result<()> {
             .route("/api/v1/wallet/whitelist", web::get().to(get_withdraw_whitelist))
             .route("/api/v1/wallet/whitelist/{address_id}", web::delete().to(remove_from_whitelist))
             
+            // Crypto 充值/提现 (区块链)
+            .route("/api/v1/crypto/deposit/address", web::get().to(get_crypto_deposit_address))
+            .route("/api/v1/crypto/deposit/history", web::get().to(get_deposit_history))
+            .route("/api/v1/crypto/withdraw", web::post().to(withdraw_crypto))
+            .route("/api/v1/crypto/withdraw/history", web::get().to(get_withdraw_history))
+            .route("/api/v1/crypto/addresses", web::get().to(get_all_deposit_addresses))
+            .route("/api/v1/crypto/simulate-deposit", web::post().to(simulate_deposit_confirm))
+            .route("/api/v1/crypto/currencies", web::get().to(get_supported_currencies))
+            .route("/api/v1/crypto/networks", web::get().to(get_networks))
+            
             // 合约
             .route("/api/v1/futures/symbols", web::get().to(get_futures_symbols))
             .route("/api/v1/futures/ticker/{symbol}", web::get().to(get_futures_ticker))

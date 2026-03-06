@@ -69,6 +69,7 @@ pub struct KycSubmission {
 
 // KYC 状态
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct KycStatus {
     pub status: String,
     pub level: i32,

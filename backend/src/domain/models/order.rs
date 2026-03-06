@@ -45,10 +45,12 @@ impl Order {
         }
     }
 
+    #[allow(dead_code)]
     pub fn is_filled(&self) -> bool {
         self.status == "filled" || self.filled >= self.quantity
     }
 
+    #[allow(dead_code)]
     pub fn is_cancelled(&self) -> bool {
         self.status == "cancelled"
     }
@@ -69,6 +71,7 @@ pub struct Trade {
 }
 
 impl Trade {
+    #[allow(dead_code)]
     pub fn new(
         order_id: String,
         user_id: String,
@@ -96,12 +99,14 @@ impl Trade {
 
 // 订单类型
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub enum OrderSide {
     Buy,
     Sell,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub enum OrderType {
     Limit,
     Market,

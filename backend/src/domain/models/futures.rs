@@ -31,6 +31,7 @@ pub struct FuturesPosition {
 }
 
 impl FuturesPosition {
+    #[allow(dead_code)]
     pub fn new(
         user_id: String,
         symbol: String,
@@ -56,6 +57,7 @@ impl FuturesPosition {
         }
     }
 
+    #[allow(dead_code)]
     pub fn calculate_pnl(&self, current_price: f64) -> f64 {
         let price_diff = match self.side.as_str() {
             "long" => current_price - self.entry_price,

@@ -4,6 +4,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 /// JWT Token 结构
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct JwtClaims {
     pub sub: String,        // 用户 ID
     pub email: String,      // 用户邮箱
@@ -13,6 +14,7 @@ pub struct JwtClaims {
 
 /// JWT Token 响应
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct TokenResponse {
     pub access_token: String,
     pub token_type: String,
@@ -20,6 +22,7 @@ pub struct TokenResponse {
 }
 
 /// JWT 配置
+#[allow(dead_code)]
 pub struct JwtConfig {
     pub secret: String,
     pub expiration: u64, // 秒
@@ -35,11 +38,13 @@ impl Default for JwtConfig {
 }
 
 impl JwtConfig {
+    #[allow(dead_code)]
     pub fn new(secret: String, expiration: u64) -> Self {
         Self { secret, expiration }
     }
 
     /// 生成 JWT Token
+    #[allow(dead_code)]
     pub fn generate_token(&self, user_id: String, email: String) -> TokenResponse {
         let now = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -68,6 +73,7 @@ impl JwtConfig {
     }
 
     /// 验证 JWT Token
+    #[allow(dead_code)]
     pub fn verify_token(&self, token: &str) -> Option<JwtClaims> {
         let parts: Vec<&str> = token.split('.').collect();
         if parts.len() != 3 {
@@ -92,13 +98,14 @@ impl JwtConfig {
 }
 
 /// 简单的 base64 编码
+#[allow(dead_code)]
 fn base64_encode(input: &str) -> String {
-    use std::io::Read;
     let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, input);
     encoded.replace('+', "-").replace('/', "_").replace("=", "")
 }
 
 /// 简单的 base64 解码
+#[allow(dead_code)]
 fn base64_decode(input: &str) -> Option<Vec<u8>> {
     let padded = match input.len() % 4 {
         2 => format!("{}==", input),

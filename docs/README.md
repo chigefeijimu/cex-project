@@ -52,7 +52,10 @@ backend/src/
 │       ├── market.rs    # 市场模型
 │       ├── order.rs     # 订单模型
 │       ├── wallet.rs    # 钱包模型
-│       └── futures.rs   # 合约/理财模型
+│       ├── futures.rs   # 合约/理财模型
+│       ├── auth.rs      # JWT 认证
+│       ├── websocket.rs # WebSocket
+│       └── blockchain.rs # 区块链集成 (BSC)
 ├── application/         # 应用层 - DTOs 和命令
 │   ├── mod.rs
 │   └── dtos/           # 数据传输对象
@@ -66,7 +69,8 @@ backend/src/
     ├── market.rs       # 市场数据
     ├── order.rs        # 订单相关
     ├── wallet.rs       # 钱包相关
-    └── trading.rs      # 合约/理财/买币
+    ├── trading.rs      # 合约/理财/买币
+    └── blockchain.rs   # 区块链充值/提现
 ```
 
 ### API 端点
@@ -99,6 +103,13 @@ backend/src/
 | Buy | /api/v1/buy/fiat-price | GET | 法币价格 |
 | Buy | /api/v1/buy/payment-methods | GET | 支付方式 |
 | Buy | /api/v1/buy/create-order | POST | 创建买币订单 |
+| Crypto | /api/v1/crypto/deposit/address | GET | 获取充值地址 |
+| Crypto | /api/v1/crypto/deposit/history | GET | 充值记录 |
+| Crypto | /api/v1/crypto/withdraw | POST | 提现 |
+| Crypto | /api/v1/crypto/withdraw/history | GET | 提现记录 |
+| Crypto | /api/v1/crypto/addresses | GET | 所有充值地址 |
+| Crypto | /api/v1/crypto/currencies | GET | 支持的币种 |
+| Crypto | /api/v1/crypto/networks | GET | 支持的网络 |
 
 ### WebSocket 端点
 
@@ -128,6 +139,27 @@ backend/src/
 
 - Token 有效期: 24 小时
 - 认证方式: `Authorization: Bearer <token>`
+
+### 区块链集成 (BSC Testnet)
+
+**RPC**: https://bnb-testnet.g.alchemy.com/v2/1Vn7ZDG5ErTLKPWoR3JzmwrrCsq4EilA
+
+**支持的网络**:
+- BSC Testnet (Chain ID: 97)
+- BTC Testnet
+- ETH Sepolia
+
+**支持的币种**:
+- BNB (原生)
+- USDT (BEP-20)
+- BTC
+- ETH
+
+**功能**:
+- 充值地址生成
+- 余额查询
+- 提现 (需热钱包签名)
+- 交易广播
 
 ---
 
@@ -490,6 +522,10 @@ cex-project/
 ---
 
 ## 更新日志
+
+| 2026-03-06 13:38 | 代码审查：前后端编译检查通过（vite build ✓, cargo check ✓）；后端有11个clippy警告（未使用的代码：区块链模型/交易记录等），不影响运行；前后端API完全对齐，6个页面完整集成后端API（53个API端点）；项目稳定运行；待实现功能（邮箱/手机验证码、充值Crypto、提现Crypto）需要外部服务集成 |
+
+| 2026-03-06 13:28 | 代码审查优化：修复31处clippy警告（unused imports, dead_code, unused fields等），Clippy警告从31降至3；前后端编译检查通过（vite build ✓, cargo build ✓）；项目稳定运行 |
 
 | 2026-03-06 13:18 | 代码审查优化：修复 state.rs 中 push immediately after creation 警告（使用 vec![] 宏替代 Vec::new + push）；前后端编译检查通过（vite build ✓, cargo check ✓）；Clippy 警告从 20 降至 18；项目稳定运行 |
 

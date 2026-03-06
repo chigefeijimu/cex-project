@@ -6,6 +6,7 @@ pub mod wallet;
 pub mod futures;
 pub mod auth;
 pub mod websocket;
+pub mod blockchain;
 
 pub use user::*;
 pub use market::*;
@@ -14,3 +15,4 @@ pub use wallet::*;
 pub use futures::*;
 pub use auth::*;
 pub use websocket::*;
+pub use blockchain::*;
