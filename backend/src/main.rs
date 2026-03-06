@@ -90,15 +90,25 @@ async fn main() -> std::io::Result<()> {
             .route("/api/v1/wallet/whitelist", web::get().to(get_withdraw_whitelist))
             .route("/api/v1/wallet/whitelist/{address_id}", web::delete().to(remove_from_whitelist))
             
-            // Crypto 充值/提现 (区块链)
+            // Crypto 充值/提现 (区块链) - 使用原始的 blockchain handler
             .route("/api/v1/crypto/deposit/address", web::get().to(get_crypto_deposit_address))
             .route("/api/v1/crypto/deposit/history", web::get().to(get_deposit_history))
-            .route("/api/v1/crypto/withdraw", web::post().to(withdraw_crypto))
+            .route("/api/v1/crypto/withdraw", web::post().to(blockchain_withdraw))
             .route("/api/v1/crypto/withdraw/history", web::get().to(get_withdraw_history))
             .route("/api/v1/crypto/addresses", web::get().to(get_all_deposit_addresses))
             .route("/api/v1/crypto/simulate-deposit", web::post().to(simulate_deposit_confirm))
             .route("/api/v1/crypto/currencies", web::get().to(get_supported_currencies))
             .route("/api/v1/crypto/networks", web::get().to(get_networks))
+            
+            // 热钱包 (用户专属充值地址)
+            .route("/api/v1/wallet/hot/address", web::get().to(get_user_wallet_address))
+            .route("/api/v1/wallet/hot/addresses", web::get().to(get_all_wallet_addresses))
+            .route("/api/v1/wallet/hot/deposit/confirm", web::post().to(confirm_deposit))
+            .route("/api/v1/wallet/hot/deposits", web::get().to(get_deposits))
+            .route("/api/v1/wallet/hot/withdraw", web::post().to(hot_withdraw_crypto))
+            .route("/api/v1/wallet/hot/withdrawals", web::get().to(get_withdrawals))
+            .route("/api/v1/wallet/hot/balance", web::get().to(get_hot_wallet_balance))
+            .route("/api/v1/wallet/hot/fee-config", web::get().to(get_fee_config))
             
             // 合约
             .route("/api/v1/futures/symbols", web::get().to(get_futures_symbols))
@@ -119,6 +129,13 @@ async fn main() -> std::io::Result<()> {
             .route("/api/v1/buy/payment-methods", web::get().to(get_payment_methods))
             .route("/api/v1/buy/create-order", web::post().to(create_buy_order))
             .route("/api/v1/buy/orders", web::get().to(get_buy_orders))
+            
+            // 管理后台
+            .route("/api/v1/admin/users", web::get().to(get_all_users))
+            .route("/api/v1/admin/orders", web::get().to(get_all_orders))
+            .route("/api/v1/admin/transactions", web::get().to(get_all_transactions))
+            .route("/api/v1/admin/stats", web::get().to(get_system_stats))
+            .route("/api/v1/admin/orders/{order_id}", web::delete().to(admin_cancel_order))
             
             // 根路径
             .route("/", web::get().to(|| async { "CEX API Server Running - DDD Architecture with WebSocket" }))

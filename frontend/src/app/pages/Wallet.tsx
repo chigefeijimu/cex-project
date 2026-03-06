@@ -1,20 +1,51 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Plus, ArrowRight, ArrowDownToLine, ArrowUpFromLine, History } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { walletApi, marketApi, type Balance, type Symbol } from '../services/api';
 
 export function Wallet() {
   const navigate = useNavigate();
   const [showBalance, setShowBalance] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [balances, setBalances] = useState<Balance[]>([]);
+  const [btcPrice, setBtcPrice] = useState(65432.50);
 
-  const totalBalance = 24563.85;
+  // Fetch wallet data from API
+  useEffect(() => {
+    async function fetchWalletData() {
+      setLoading(true);
+      
+      // Fetch balances - use default user for demo
+      const balanceResult = await walletApi.getBalance("default");
+      if (balanceResult.data) {
+        setBalances(balanceResult.data);
+      }
+      
+      // Fetch BTC price for valuation
+      const tickerResult = await marketApi.getTicker('BTC/USDT');
+      if (tickerResult.data) {
+        setBtcPrice(tickerResult.data.price);
+      }
+      
+      setLoading(false);
+    }
+    
+    fetchWalletData();
+  }, []);
+
+  // Calculate total balance in USDT
+  const totalBalance = balances.reduce((sum, b) => sum + b.available + b.frozen, 0);
   const todayPnL = +124.50;
 
-  const assets = [
-    { symbol: 'USDT', name: 'Tether US', balance: 15234.67, available: 15234.67, inOrder: 0, btcValue: 0.232 },
-    { symbol: 'BTC', name: 'Bitcoin', balance: 0.5234, available: 0.5234, inOrder: 0, btcValue: 0.5234 },
-    { symbol: 'ETH', name: 'Ethereum', balance: 4.5, available: 4.0, inOrder: 0.5, btcValue: 0.215 },
-    { symbol: 'BNB', name: 'BNB', balance: 12.4, available: 12.4, inOrder: 0, btcValue: 0.112 },
-  ];
+  // Map API balances to display format
+  const assets = balances.map((b) => ({
+    symbol: b.currency,
+    name: b.currency === 'USDT' ? 'Tether US' : b.currency === 'BTC' ? 'Bitcoin' : b.currency === 'ETH' ? 'Ethereum' : b.currency,
+    balance: b.total,
+    available: b.available,
+    inOrder: b.frozen,
+    btcValue: b.currency === 'USDT' ? b.total / btcPrice : b.total,
+  }));
 
   const formatCrypto = (val: number) => {
     if (!showBalance) return '********';
@@ -122,7 +153,20 @@ export function Wallet() {
                 </tr>
               </thead>
               <tbody>
-                {assets.map((asset) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-gray-500">
+                      加载中...
+                    </td>
+                  </tr>
+                ) : (assets.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-gray-500">
+                      暂无资产数据
+                    </td>
+                  </tr>
+                ) : (
+                  assets.map((asset) => (
                   <tr key={asset.symbol} className="hover:bg-[#2b3139] border-b border-[#2b3139]/50 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -155,7 +199,7 @@ export function Wallet() {
                       </div>
                     </td>
                   </tr>
-                ))}
+                ))))}
               </tbody>
             </table>
           </div>

@@ -1,15 +1,59 @@
-import { PiggyBank, ShieldCheck, Flame, Coins, ArrowRight } from 'lucide-react';
-
-const MOCK_EARN_PRODUCTS = [
-  { symbol: 'USDT', name: 'Tether US', apr: '12.50%', duration: '活期', type: '赚币', tag: '热门' },
-  { symbol: 'USDC', name: 'USD Coin', apr: '10.20%', duration: '活期', type: '赚币' },
-  { symbol: 'BTC', name: 'Bitcoin', apr: '2.50%', duration: '活期', type: '赚币' },
-  { symbol: 'ETH', name: 'Ethereum', apr: '4.20%', duration: '120天', type: '质押', tag: '高收益' },
-  { symbol: 'SOL', name: 'Solana', apr: '6.80%', duration: '60天', type: '质押' },
-  { symbol: 'BNB', name: 'BNB', apr: '3.50%', duration: '活期', type: '收益池' },
-];
+import { useState, useEffect } from 'react';
+import { PiggyBank, ShieldCheck, Flame, Coins, ArrowRight, Loader2 } from 'lucide-react';
+import { earnApi, type EarnProduct, type EarnHolding } from '../services/api';
 
 export function Earn() {
+  const [products, setProducts] = useState<EarnProduct[]>([]);
+  const [holdings, setHoldings] = useState<EarnHolding[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [subscribing, setSubscribing] = useState<string | null>(null);
+  const [subscribeAmount, setSubscribeAmount] = useState<Record<string, string>>({});
+  const [showModal, setShowModal] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const [productsResult, holdingsResult] = await Promise.all([
+        earnApi.getProducts(),
+        earnApi.getHoldings(),
+      ]);
+      
+      if (productsResult.data) {
+        setProducts(productsResult.data);
+      }
+      if (holdingsResult.data) {
+        setHoldings(holdingsResult.data);
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  const handleSubscribe = async (productId: string) => {
+    const amount = parseFloat(subscribeAmount[productId]);
+    if (!amount || amount <= 0) return;
+    
+    setSubscribing(productId);
+    const result = await earnApi.subscribe(productId, amount);
+    
+    if (result.data) {
+      setHoldings(prev => [...prev, result.data as EarnHolding]);
+      setSubscribeAmount(prev => ({ ...prev, [productId]: '' }));
+      setShowModal(null);
+    }
+    setSubscribing(null);
+  };
+
+  const getProductTag = (product: EarnProduct) => {
+    if (product.duration === '活期') return '热门';
+    if (product.apr > 8) return '高收益';
+    return null;
+  };
+
+  const getDuration = (product: EarnProduct) => {
+    if (product.duration === '0' || product.lock_period === 0) return '活期';
+    return product.duration || `${product.lock_period}天`;
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
@@ -89,46 +133,107 @@ export function Earn() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_EARN_PRODUCTS.map((product) => (
-                <tr key={product.symbol} className="hover:bg-[#2b3139] border-b border-[#2b3139]/50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-[#f0b90b] rounded-full flex items-center justify-center text-sm font-bold text-black shrink-0">
-                        {product.symbol[0]}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-white text-base">{product.symbol}</span>
-                          {product.tag && (
-                            <span className="text-[10px] bg-[#f0b90b]/20 text-[#f0b90b] px-1.5 py-0.5 rounded border border-[#f0b90b]/30">
-                              {product.tag}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs text-gray-500">{product.name}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <span className="text-xl font-bold text-[#0ecb81]">{product.apr}</span>
-                  </td>
-                  <td className="px-6 py-4 text-right text-white">
-                    {product.duration}
-                  </td>
-                  <td className="px-6 py-4 text-center text-gray-300 hidden sm:table-cell">
-                    {product.type}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button className="bg-[#f0b90b] text-black hover:bg-[#f0b90b]/90 px-4 sm:px-6 py-2 rounded-lg font-bold transition-colors text-xs sm:text-sm">
-                      申购
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-gray-500">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+                    加载中...
                   </td>
                 </tr>
-              ))}
+              ) : products.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-gray-500">
+                    暂无可用理财产品
+                  </td>
+                </tr>
+              ) : (
+                products.map((product) => (
+                  <tr key={product.id} className="hover:bg-[#2b3139] border-b border-[#2b3139]/50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-[#f0b90b] rounded-full flex items-center justify-center text-sm font-bold text-black shrink-0">
+                          {product.symbol[0]}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white text-base">{product.symbol}</span>
+                            {getProductTag(product) && (
+                              <span className="text-[10px] bg-[#f0b90b]/20 text-[#f0b90b] px-1.5 py-0.5 rounded border border-[#f0b90b]/30">
+                                {getProductTag(product)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-xs text-gray-500">{product.name}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <span className="text-xl font-bold text-[#0ecb81]">{(product.apr * 100).toFixed(2)}%</span>
+                    </td>
+                    <td className="px-6 py-4 text-right text-white">
+                      {getDuration(product)}
+                    </td>
+                    <td className="px-6 py-4 text-center text-gray-300 hidden sm:table-cell">
+                      {product.product_type || '赚币'}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        onClick={() => setShowModal(product.id)}
+                        className="bg-[#f0b90b] text-black hover:bg-[#f0b90b]/90 px-4 sm:px-6 py-2 rounded-lg font-bold transition-colors text-xs sm:text-sm"
+                      >
+                        申购
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
       </div>
+      {/* Subscribe Modal */}
+      {showModal && (() => {
+        const product = products.find(p => p.id === showModal);
+        if (!product) return null;
+        return (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowModal(null)}>
+            <div className="bg-[#1e2329] border border-[#2b3139] rounded-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+              <h3 className="text-xl font-bold text-white mb-4">申购 {product.symbol}</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-gray-400 text-sm block mb-2">申购金额</label>
+                  <input
+                    type="number"
+                    value={subscribeAmount[showModal] || ''}
+                    onChange={e => setSubscribeAmount(prev => ({ ...prev, [showModal]: e.target.value }))}
+                    placeholder={`最低 ${product.min_amount} ${product.symbol}`}
+                    className="w-full bg-[#0b0e11] border border-[#2b3139] rounded-xl px-4 py-3 text-white outline-none focus:border-[#f0b90b]"
+                  />
+                </div>
+                <div className="flex justify-between text-sm text-gray-400">
+                  <span>预计年化收益</span>
+                  <span className="text-[#0ecb81] font-bold">{(product.apr * 100).toFixed(2)}%</span>
+                </div>
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => setShowModal(null)}
+                    className="flex-1 bg-[#2b3139] text-white font-bold py-3 rounded-xl hover:bg-[#3b434c] transition-colors"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={() => handleSubscribe(showModal)}
+                    disabled={subscribing === showModal}
+                    className="flex-1 bg-[#f0b90b] text-black font-bold py-3 rounded-xl hover:bg-[#f0b90b]/90 transition-colors disabled:opacity-50"
+                  >
+                    {subscribing === showModal ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : '确认申购'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

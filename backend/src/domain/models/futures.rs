@@ -31,6 +31,7 @@ pub struct FuturesPosition {
 }
 
 impl FuturesPosition {
+    #[allow(clippy::too_many_arguments)]
     #[allow(dead_code)]
     pub fn new(
         user_id: String,

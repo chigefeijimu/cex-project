@@ -213,31 +213,3 @@ pub struct TransactionReceipt {
     pub confirmations: u64,
     pub block_number: u64,
 }
-
-/// 充值记录
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DepositRecord {
-    pub id: String,
-    pub user_id: String,
-    pub currency: String,
-    pub amount: f64,
-    pub from_address: String,
-    pub to_address: String,
-    pub tx_hash: String,
-    pub status: String, // pending, confirmed, failed
-    pub confirmations: u64,
-    pub created_at: i64,
-}
-
-/// 提现记录
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WithdrawRecord {
-    pub id: String,
-    pub user_id: String,
-    pub currency: String,
-    pub amount: f64,
-    pub to_address: String,
-    pub tx_hash: Option<String>,
-    pub status: String, // pending, processing, confirmed, failed
-    pub created_at: i64,
-}

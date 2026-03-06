@@ -24,8 +24,9 @@ pub async fn register(
     let password_hash = hash(&req.password, DEFAULT_COST).unwrap();
     let user = User::new(req.email.clone(), req.username.clone(), password_hash);
     
+    let user_id = user.id.clone();
     let user_info = UserInfo::from(&user);
-    users.insert(user.id.clone(), user);
+    users.insert(user_id.clone(), user);
     
     // 生成邀请码
     let invite_code = uuid::Uuid::new_v4().to_string()[..8].to_string();
@@ -34,6 +35,10 @@ pub async fn register(
     // 生成会话 token
     let token = uuid::Uuid::new_v4().to_string();
     state.sessions.lock().unwrap().insert(token.clone(), user_info.id.clone());
+    
+    // 为用户生成热钱包
+    drop(users);
+    crate::handlers::hot_wallet::generate_user_hot_wallet(&state, &user_id);
     
     HttpResponse::Ok().json(AuthResponse {
         token,

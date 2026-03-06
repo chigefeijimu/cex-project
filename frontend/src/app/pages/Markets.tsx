@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Star, TrendingUp, TrendingDown, Search, ArrowRight } from 'lucide-react';
+import { marketApi, type Symbol } from '../services/api';
 
 const MOCK_MARKETS = [
   { symbol: 'BTC', name: 'Bitcoin', price: 65432.50, change: 2.34, volume: '1.52B', marketCap: '1.2T' },
@@ -13,15 +14,76 @@ const MOCK_MARKETS = [
   { symbol: 'DOGE', name: 'Dogecoin', price: 0.0823, change: -2.34, volume: '278M', marketCap: '11B' },
 ];
 
+interface MarketData extends Symbol {
+  displayVolume: string;
+  displayMarketCap: string;
+}
+
+function formatVolume(vol: number): string {
+  if (vol >= 1e9) return (vol / 1e9).toFixed(2) + 'B';
+  if (vol >= 1e6) return (vol / 1e6).toFixed(2) + 'M';
+  if (vol >= 1e3) return (vol / 1e3).toFixed(2) + 'K';
+  return vol.toFixed(2);
+}
+
+function formatMarketCap(cap?: number): string {
+  if (!cap) return '-';
+  if (cap >= 1e12) return (cap / 1e12).toFixed(1) + 'T';
+  if (cap >= 1e9) return (cap / 1e9).toFixed(0) + 'B';
+  if (cap >= 1e6) return (cap / 1e6).toFixed(0) + 'M';
+  return cap.toString();
+}
+
 export function Markets() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('spot');
   const [searchQuery, setSearchQuery] = useState('');
+  const [markets, setMarkets] = useState<MarketData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filteredMarkets = MOCK_MARKETS.filter(m => 
+  // Fetch market data from API
+  useEffect(() => {
+    async function fetchMarkets() {
+      setLoading(true);
+      setError(null);
+      
+      const result = await marketApi.getSymbols();
+      
+      if (result.error) {
+        console.error('Failed to fetch markets:', result.error);
+        // Fallback to mock data on error
+        setMarkets(MOCK_MARKETS.map(m => ({
+          ...m,
+          symbol: m.symbol + 'USDT',
+          change_24h: m.change,
+          volume_24h: parseFloat(m.volume.replace('B', '').replace('M', '')) * 1e6,
+          displayVolume: m.volume,
+          displayMarketCap: m.marketCap,
+        })));
+      } else if (result.data) {
+        setMarkets(result.data.map((m: Symbol) => ({
+          ...m,
+          change: m.change_24h,
+          displayVolume: formatVolume(m.volume_24h),
+          displayMarketCap: formatMarketCap(m.market_cap),
+        })));
+      }
+      
+      setLoading(false);
+    }
+    
+    fetchMarkets();
+  }, []);
+
+  const filteredMarkets = markets.filter(m => 
     m.symbol.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    m.name.toLowerCase().includes(searchQuery.toLowerCase())
+    m.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Sort by change for gainers
+  const gainers = [...filteredMarkets].sort((a, b) => b.change_24h - a.change_24h).slice(0, 3);
+  const topVolume = [...filteredMarkets].sort((a, b) => b.volume_24h - a.volume_24h).slice(0, 3);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -38,16 +100,16 @@ export function Markets() {
             <TrendingUp className="text-[#0ecb81] w-5 h-5" /> 热门币种
           </h3>
           <div className="space-y-4">
-            {MOCK_MARKETS.slice(0, 3).map(coin => (
+            {gainers.map(coin => (
               <div key={coin.symbol} className="flex justify-between items-center cursor-pointer hover:bg-[#2b3139] p-2 -mx-2 rounded transition-colors" onClick={() => navigate('/trade')}>
                 <div className="flex items-center gap-3">
                   <div className="w-6 h-6 bg-[#f0b90b] rounded-full flex items-center justify-center text-xs font-bold text-black">
-                    {coin.symbol[0]}
+                    {coin.symbol.replace('USDT', '')[0]}
                   </div>
-                  <span className="font-medium text-white">{coin.symbol}</span>
+                  <span className="font-medium text-white">{coin.symbol.replace('USDT', '')}</span>
                 </div>
-                <div className={`text-sm ${coin.change >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                  {coin.change > 0 ? '+' : ''}{coin.change}%
+                <div className={`text-sm ${coin.change_24h >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
+                  {coin.change_24h > 0 ? '+' : ''}{coin.change_24h?.toFixed(2) ?? '0.00'}%
                 </div>
               </div>
             ))}
@@ -77,13 +139,13 @@ export function Markets() {
             🔥 成交量榜
           </h3>
           <div className="space-y-4">
-            {[...MOCK_MARKETS].slice(0, 3).map(coin => (
+            {topVolume.map(coin => (
               <div key={coin.symbol} className="flex justify-between items-center cursor-pointer hover:bg-[#2b3139] p-2 -mx-2 rounded transition-colors" onClick={() => navigate('/trade')}>
                 <div className="flex items-center gap-3">
-                  <span className="font-medium text-white">{coin.symbol}</span>
+                  <span className="font-medium text-white">{coin.symbol.replace('USDT', '')}</span>
                 </div>
                 <div className="text-sm text-gray-300">
-                  ${coin.volume}
+                  ${coin.displayVolume}
                 </div>
               </div>
             ))}
@@ -142,50 +204,70 @@ export function Markets() {
               </tr>
             </thead>
             <tbody>
-              {filteredMarkets.map((coin) => (
-                <tr key={coin.symbol} className="hover:bg-[#2b3139] border-b border-[#2b3139]/50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <Star className="w-4 h-4 text-gray-500 hover:text-[#f0b90b] cursor-pointer transition-colors" />
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 bg-[#f0b90b] rounded-full flex items-center justify-center text-xs font-bold text-black">
-                          {coin.symbol[0]}
-                        </div>
-                        <div>
-                          <span className="font-bold text-white text-base">{coin.symbol}</span>
-                          <span className="text-gray-500 ml-1 text-xs">{coin.name}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right font-medium text-white">
-                    ${coin.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
-                  </td>
-                  <td className={`px-6 py-4 text-right font-medium ${coin.change >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                    {coin.change > 0 ? '+' : ''}{coin.change}%
-                  </td>
-                  <td className="px-6 py-4 text-right text-gray-300 hidden md:table-cell">
-                    ${(coin.price * 1.05).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
-                  </td>
-                  <td className="px-6 py-4 text-right text-gray-300 hidden md:table-cell">
-                    ${(coin.price * 0.95).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
-                  </td>
-                  <td className="px-6 py-4 text-right text-gray-300 hidden sm:table-cell">
-                    ${coin.volume}
-                  </td>
-                  <td className="px-6 py-4 text-right text-gray-300 hidden lg:table-cell">
-                    ${coin.marketCap}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button 
-                      onClick={() => navigate('/trade')}
-                      className="text-[#f0b90b] hover:text-[#f0b90b]/80 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 mx-auto"
-                    >
-                      去交易 <ArrowRight className="w-3 h-3" />
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-12 text-gray-500">
+                    加载中...
                   </td>
                 </tr>
-              ))}
+              ) : error ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-12 text-gray-500">
+                    数据加载失败，使用离线数据
+                  </td>
+                </tr>
+              ) : filteredMarkets.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-12 text-gray-500">
+                    未找到匹配的币种
+                  </td>
+                </tr>
+              ) : (
+                filteredMarkets.map((coin) => (
+                  <tr key={coin.symbol} className="hover:bg-[#2b3139] border-b border-[#2b3139]/50 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <Star className="w-4 h-4 text-gray-500 hover:text-[#f0b90b] cursor-pointer transition-colors" />
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-[#f0b90b] rounded-full flex items-center justify-center text-xs font-bold text-black">
+                            {coin.symbol.replace('USDT', '')[0]}
+                          </div>
+                          <div>
+                            <span className="font-bold text-white text-base">{coin.symbol.replace('USDT', '')}</span>
+                            <span className="text-gray-500 ml-1 text-xs">{coin.name || 'USDT'}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right font-medium text-white">
+                      ${coin.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) || '0.00'}
+                    </td>
+                    <td className={`px-6 py-4 text-right font-medium ${coin.change_24h >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
+                      {coin.change_24h > 0 ? '+' : ''}{coin.change_24h?.toFixed(2) ?? '0.00'}%
+                    </td>
+                    <td className="px-6 py-4 text-right text-gray-300 hidden md:table-cell">
+                      ${coin.high_24h?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) || '0.00'}
+                    </td>
+                    <td className="px-6 py-4 text-right text-gray-300 hidden md:table-cell">
+                      ${coin.low_24h?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) || '0.00'}
+                    </td>
+                    <td className="px-6 py-4 text-right text-gray-300 hidden sm:table-cell">
+                      ${coin.displayVolume || '0'}
+                    </td>
+                    <td className="px-6 py-4 text-right text-gray-300 hidden lg:table-cell">
+                      ${coin.displayMarketCap || '-'}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        onClick={() => navigate('/trade')}
+                        className="text-[#f0b90b] hover:text-[#f0b90b]/80 font-medium opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1 mx-auto"
+                      >
+                        去交易 <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
           {filteredMarkets.length === 0 && (

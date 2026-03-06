@@ -52,6 +52,12 @@ export function TopNavigation() {
             >
               资产
             </NavLink>
+            <NavLink 
+              to="/admin" 
+              className={({ isActive }) => isActive ? "text-[#f0b90b] font-semibold" : "text-white hover:text-[#f0b90b] transition-colors"}
+            >
+              管理
+            </NavLink>
             <a href="#" className="text-white hover:text-[#f0b90b] transition-colors flex items-center gap-1">
               更多
               <Menu className="w-4 h-4" />

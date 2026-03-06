@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Info } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { futuresApi, type FuturesSymbol } from '../services/api';
 
 const MOCK_FUTURES = [
   { symbol: 'BTCUSDT', name: '永续', price: 65432.50, change: 2.34, volume: '15.2B', fundingRate: '0.0100%' },
@@ -9,8 +11,43 @@ const MOCK_FUTURES = [
   { symbol: 'DOGEUSDT', name: '永续', price: 0.0823, change: -2.34, volume: '1.2B', fundingRate: '-0.0050%' },
 ];
 
+function formatVolume(vol: number): string {
+  if (vol >= 1e9) return (vol / 1e9).toFixed(1) + 'B';
+  if (vol >= 1e6) return (vol / 1e6).toFixed(1) + 'M';
+  return vol.toFixed(0);
+}
+
+function formatFunding(rate: number): string {
+  const sign = rate >= 0 ? '+' : '';
+  return `${sign}${(rate * 100).toFixed(4)}%`;
+}
+
 export function Derivatives() {
   const navigate = useNavigate();
+  const [futures, setFutures] = useState<FuturesSymbol[] | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchFutures() {
+      const result = await futuresApi.getSymbols();
+      
+      if (result.data) {
+        setFutures(result.data);
+      } else {
+        // Fallback to mock data
+        setFutures(MOCK_FUTURES.map(f => ({
+          symbol: f.symbol,
+          price: f.price,
+          change_24h: f.change,
+          volume_24h: parseFloat(f.volume.replace('B', '').replace('M', '')) * 1e6,
+          funding_rate: parseFloat(f.fundingRate.replace('%', '')) / 100,
+        })));
+      }
+      setLoading(false);
+    }
+    
+    fetchFutures();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -67,36 +104,44 @@ export function Derivatives() {
               </tr>
             </thead>
             <tbody>
-              {MOCK_FUTURES.map((coin) => (
-                <tr key={coin.symbol} className="hover:bg-[#2b3139] border-b border-[#2b3139]/50 transition-colors group cursor-pointer" onClick={() => navigate('/trade')}>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-base">{coin.symbol}</span>
-                      <span className="text-[10px] bg-[#2b3139] text-[#f0b90b] px-1.5 py-0.5 rounded border border-[#f0b90b]/30">{coin.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right font-medium text-white">
-                    {coin.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
-                  </td>
-                  <td className={`px-6 py-4 text-right font-medium ${coin.change >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
-                    {coin.change > 0 ? '+' : ''}{coin.change}%
-                  </td>
-                  <td className="px-6 py-4 text-right text-white hidden sm:table-cell">
-                    {coin.volume}
-                  </td>
-                  <td className="px-6 py-4 text-right text-[#f0b90b] hidden md:table-cell">
-                    {coin.fundingRate}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <button 
-                      className="text-white bg-[#2b3139] hover:bg-[#3b434c] px-4 py-1.5 rounded text-xs font-medium transition-colors"
-                      onClick={(e) => { e.stopPropagation(); navigate('/trade'); }}
-                    >
-                      交易
-                    </button>
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-12 text-gray-500">
+                    加载中...
                   </td>
                 </tr>
-              ))}
+              ) : (
+                futures?.map((coin) => (
+                  <tr key={coin.symbol} className="hover:bg-[#2b3139] border-b border-[#2b3139]/50 transition-colors group cursor-pointer" onClick={() => navigate('/trade')}>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white text-base">{coin.symbol}</span>
+                        <span className="text-[10px] bg-[#2b3139] text-[#f0b90b] px-1.5 py-0.5 rounded border border-[#f0b90b]/30">永续</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right font-medium text-white">
+                      {coin.price?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                    </td>
+                    <td className={`px-6 py-4 text-right font-medium ${coin.change_24h >= 0 ? 'text-[#0ecb81]' : 'text-[#f6465d]'}`}>
+                      {coin.change_24h > 0 ? '+' : ''}{coin.change_24h?.toFixed(2) ?? '0.00'}%
+                    </td>
+                    <td className="px-6 py-4 text-right text-white hidden sm:table-cell">
+                      ${formatVolume(coin.volume_24h)}
+                    </td>
+                    <td className="px-6 py-4 text-right text-[#f0b90b] hidden md:table-cell">
+                      {formatFunding(coin.funding_rate)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button 
+                        className="text-white bg-[#2b3139] hover:bg-[#3b434c] px-4 py-1.5 rounded text-xs font-medium transition-colors"
+                        onClick={(e) => { e.stopPropagation(); navigate('/trade'); }}
+                      >
+                        交易
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

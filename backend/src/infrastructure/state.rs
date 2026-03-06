@@ -30,6 +30,8 @@ pub struct AppState {
     pub deposit_addresses: Mutex<std::collections::HashMap<String, DepositAddress>>,
     pub deposits: Mutex<std::collections::HashMap<String, DepositRecord>>,
     pub withdrawals: Mutex<std::collections::HashMap<String, WithdrawRecord>>,
+    // Hot Wallet
+    pub user_wallets: Mutex<std::collections::HashMap<String, UserWallet>>,
 }
 
 impl Default for AppState {
@@ -141,6 +143,8 @@ impl Default for AppState {
             deposit_addresses: Mutex::new(std::collections::HashMap::new()),
             deposits: Mutex::new(std::collections::HashMap::new()),
             withdrawals: Mutex::new(std::collections::HashMap::new()),
+            // Hot Wallet
+            user_wallets: Mutex::new(std::collections::HashMap::new()),
         }
     }
 }

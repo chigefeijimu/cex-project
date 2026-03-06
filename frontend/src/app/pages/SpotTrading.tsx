@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { TradingPairSelector } from '../components/TradingPairSelector';
 import { MarketInfo } from '../components/MarketInfo';
 import { AdvancedChart } from '../components/AdvancedChart';
@@ -9,6 +9,7 @@ import { AdvancedTradingForm } from '../components/AdvancedTradingForm';
 import { OrderManagement } from '../components/OrderManagement';
 import { MarketActivity } from '../components/MarketActivity';
 import { Announcements } from '../components/Announcements';
+import { marketApi, walletApi, orderApi, Symbol, Balance } from '../services/api';
 
 interface TradingPair {
   symbol: string;
@@ -19,32 +20,89 @@ interface TradingPair {
   isFavorite?: boolean;
 }
 
+const DEFAULT_USER_ID = "default"; // 默认用户ID
+
 export function SpotTrading() {
-  const [currentPrice, setCurrentPrice] = useState(65432.50);
+  const [currentPrice, setCurrentPrice] = useState(0);
   const [selectedPair, setSelectedPair] = useState('BTC/USDT');
-  const [balances, setBalances] = useState({
-    BTC: 0.5234,
-    USDT: 15234.67
+  const [balances, setBalances] = useState<Record<string, number>>({
+    BTC: 0,
+    USDT: 0
   });
   const [showDepthChart, setShowDepthChart] = useState(false);
+  const [symbols, setSymbols] = useState<Symbol[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleTrade = (type: 'buy' | 'sell', amount: number, price: number) => {
-    const total = amount * price;
+  // 加载交易对列表和初始数据
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // 获取交易对列表
+        const symbolsRes = await marketApi.getSymbols();
+        if (symbolsRes.data) {
+          setSymbols(symbolsRes.data);
+          // 设置默认交易对价格
+          const btcData = symbolsRes.data.find((s: Symbol) => s.symbol === 'BTC/USDT');
+          if (btcData) {
+            setCurrentPrice(btcData.price);
+          }
+        }
+
+        // 获取钱包余额
+        const balanceRes = await walletApi.getBalance(DEFAULT_USER_ID);
+        if (balanceRes.data) {
+          const balanceMap: Record<string, number> = {};
+          balanceRes.data.forEach((b: Balance) => {
+            const currency = b.currency.replace('USDT', 'USDT');
+            balanceMap[currency] = b.available;
+          });
+          setBalances(balanceMap);
+        }
+      } catch (error) {
+        console.error('Failed to load trading data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  // 定时刷新价格
+  useEffect(() => {
+    const fetchPrice = async () => {
+      if (!selectedPair) return;
+      const pair = selectedPair.replace('/', '');
+      const tickerRes = await marketApi.getTicker(pair);
+      if (tickerRes.data) {
+        setCurrentPrice(tickerRes.data.price);
+      }
+    };
+
+    fetchPrice();
+    const interval = setInterval(fetchPrice, 5000); // 每5秒刷新
+    return () => clearInterval(interval);
+  }, [selectedPair]);
+
+  const handleTrade = async (type: 'buy' | 'sell', amount: number, price: number) => {
+    const symbol = selectedPair.replace('/', '');
+    const orderType = 'limit';
     
-    if (type === 'buy') {
-      if (balances.USDT >= total) {
-        setBalances({
-          BTC: balances.BTC + amount,
-          USDT: balances.USDT - total
-        });
+    try {
+      const result = await orderApi.place(symbol, type, orderType, price, amount);
+      if (result.data) {
+        // 重新获取余额
+        const balanceRes = await walletApi.getBalance(DEFAULT_USER_ID);
+        if (balanceRes.data) {
+          const balanceMap: Record<string, number> = {};
+          balanceRes.data.forEach((b: Balance) => {
+            balanceMap[b.currency] = b.available;
+          });
+          setBalances(balanceMap);
+        }
       }
-    } else {
-      if (balances.BTC >= amount) {
-        setBalances({
-          BTC: balances.BTC - amount,
-          USDT: balances.USDT + total
-        });
-      }
+    } catch (error) {
+      console.error('Trade failed:', error);
     }
   };
 

@@ -150,10 +150,12 @@ pub async fn withdraw_crypto(
         user_id: user_id.clone(),
         currency: withdraw_req.currency.clone(),
         amount: withdraw_req.amount,
+        fee: HotWalletService::calculate_fee(&withdraw_req.currency),
         to_address: withdraw_req.address.clone(),
         tx_hash: None,
-        status: "processing".to_string(),
+        status: WithdrawStatus::Processing,
         created_at: chrono::Utc::now().timestamp(),
+        processed_at: Some(chrono::Utc::now().timestamp()),
     };
     
     let withdraw_response = withdraw_record.clone();
@@ -234,7 +236,7 @@ pub async fn simulate_deposit_confirm(
     let amount = 0.1;
     
     let mut balances = state.balances.lock().unwrap();
-    let user_balances = balances.entry(user_id.clone()).or_insert_with(Vec::new);
+    let user_balances = balances.entry(user_id.clone()).or_default();
     
     if let Some(balance) = user_balances.iter_mut().find(|b| b.currency == currency) {
         balance.available += amount;
